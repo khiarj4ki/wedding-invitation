@@ -1,11 +1,3 @@
-// server.js
-// Backend API untuk Undangan Pernikahan Digital.
-//
-// Menjalankan:
-//   cd backend && npm install && npm start
-// Server berjalan di http://localhost:3000
-// Frontend statis (folder ../frontend) juga otomatis dilayani oleh server ini.
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -17,14 +9,12 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// ===================== PUBLIC API (dipakai frontend tamu) =====================
+// ===================== PUBLIC API =====================
 
-// Ambil detail acara pernikahan (nama mempelai, tanggal, lokasi, cerita, dst)
 app.get('/api/settings', (req, res) => {
   res.json(db.getSettings());
 });
 
-// Resolve link personal tamu: /api/guest/:slug -> { name }
 app.get('/api/guest/:slug', (req, res) => {
   const guest = db.getGuestBySlug(req.params.slug);
   if (!guest) {
@@ -33,32 +23,49 @@ app.get('/api/guest/:slug', (req, res) => {
   res.json(guest);
 });
 
-// Ambil daftar ucapan & doa (wall of wishes), terbaru dulu
 app.get('/api/rsvp', (req, res) => {
   res.json(db.listRsvps());
 });
 
-// Ringkasan jumlah konfirmasi kehadiran
 app.get('/api/rsvp/summary', (req, res) => {
   res.json(db.rsvpSummary());
 });
 
-// Kirim ucapan + konfirmasi kehadiran
 app.post('/api/rsvp', (req, res) => {
-  const { guestName, attendance, message } = req.body;
+  const { slug, guestName, attendance, message, pax } = req.body;
   if (!guestName || !attendance || !message) {
     return res.status(400).json({ error: 'Nama, status kehadiran, dan ucapan wajib diisi.' });
   }
   if (!['hadir', 'tidak_hadir', 'ragu'].includes(attendance)) {
     return res.status(400).json({ error: 'Status kehadiran tidak valid.' });
   }
-  const rsvp = db.addRsvp({ guestName, attendance, message });
+
+  // Penentuan Sesi & Validasi Pax
+  const guest = db.getGuestBySlug(slug);
+  const session = guest ? guest.session : 1;
+
+  if (attendance === 'hadir') {
+    const summary = db.rsvpSummary();
+    const currentPax = summary[`sesi${session}`].pax;
+    const requestedPax = parseInt(pax) || 1;
+
+    if (currentPax + requestedPax > 200) {
+      const sisa = 200 - currentPax;
+      return res.status(400).json({ error: `Maaf, Sesi ${session} sudah penuh (Tersisa ${sisa} Pax).` });
+    }
+  }
+
+  const rsvp = db.addRsvp({
+    guestName,
+    attendance,
+    message,
+    pax: attendance === 'hadir' ? parseInt(pax) : 0,
+    session
+  });
   res.status(201).json(rsvp);
 });
 
-// ===================== ADMIN API (dipakai admin.html) =====================
-// Catatan: untuk penggunaan nyata, lindungi endpoint /api/admin/* dengan
-// autentikasi (misalnya token/password) sebelum dipakai secara publik.
+// ===================== ADMIN API =====================
 
 app.put('/api/admin/settings', (req, res) => {
   const updated = db.updateSettings(req.body || {});
@@ -70,15 +77,15 @@ app.get('/api/admin/guests', (req, res) => {
 });
 
 app.post('/api/admin/guests', (req, res) => {
-  const { name, names } = req.body;
+  const { name, names, session } = req.body;
   if (Array.isArray(names) && names.length) {
-    const created = db.addGuestsBulk(names.map((n) => n.trim()).filter(Boolean));
+    const created = db.addGuestsBulk(names.map((n) => n.trim()).filter(Boolean), session);
     return res.status(201).json(created);
   }
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'Nama tamu wajib diisi.' });
   }
-  const guest = db.addGuest(name.trim());
+  const guest = db.addGuest(name.trim(), session);
   res.status(201).json(guest);
 });
 
@@ -102,6 +109,4 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`✔ Server undangan berjalan di http://localhost:${PORT}`);
-  console.log(`  Halaman tamu : http://localhost:${PORT}/`);
-  console.log(`  Halaman admin: http://localhost:${PORT}/admin`);
 });

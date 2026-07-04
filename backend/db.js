@@ -1,9 +1,3 @@
-// db.js
-// Penyimpanan data sederhana berbasis file JSON.
-// Untuk produksi dengan trafik tinggi, ganti lapisan ini dengan database
-// sungguhan (PostgreSQL, MySQL, SQLite, dst) — bentuk fungsi di bawah
-// sengaja dibuat mirip query DB supaya gampang diganti nanti.
-
 const fs = require('fs');
 const path = require('path');
 
@@ -11,33 +5,28 @@ const DB_PATH = path.join(__dirname, 'data', 'db.json');
 
 const DEFAULT_DB = {
   settings: {
-    groomName: 'Raka Pratama',
-    groomFullName: 'Raka Pratama, S.T.',
-    groomFather: 'Bapak Sutrisno Hadi',
-    groomMother: 'Ibu Wulandari',
-    brideName: 'Cinta Amelia',
-    brideFullName: 'Cinta Amelia, S.Psi.',
-    brideFather: 'Bapak Hendra Gunawan',
-    brideMother: 'Ibu Kartika Sari',
-    weddingDate: '2026-09-12',
-    akadTime: '08:00',
-    akadEnd: '09:30',
-    resepsiTime: '11:00',
-    resepsiEnd: '14:00',
-    venueName: 'Gedung Pertiwi Convention Hall',
-    venueAddress: 'Jl. Melati Raya No. 21, Sleman',
-    city: 'Yogyakarta',
-    mapsUrl: 'https://maps.google.com/?q=Yogyakarta',
-    loveStory: [
-      { title: 'Pertama Berjumpa', date: '2019-02-14', text: 'Bertemu pertama kali di sebuah acara kampus, obrolan singkat yang ternyata membekas cukup lama.' },
-      { title: 'Menjalin Kedekatan', date: '2020-06-01', text: 'Komunikasi yang semakin intens membawa kami pada keputusan untuk saling mengenal lebih jauh.' },
-      { title: 'Lamaran', date: '2025-11-08', text: 'Restu dari kedua keluarga menjadi awal langkah kami menuju hari bahagia ini.' }
-    ],
-    bankAccounts: [
-      { bank: 'Bank Mandiri', number: '1320006284864', name: 'Raka Pratama' },
-      { bank: 'Bank BCA', number: '4560012345', name: 'Cinta Amelia' }
-    ],
-    heroQuote: 'Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan pasangan untukmu agar kamu merasa tenteram kepadanya.'
+    groomName: '',
+    groomFullName: '',
+    groomFather: '',
+    groomMother: '',
+    brideName: '',
+    brideFullName: '',
+    brideFather: '',
+    brideMother: '',
+    weddingDate: '',
+    sesi1Time: '',
+    sesi1End: '',
+    sesi2Time: '',
+    sesi2End: '',
+    sesi3Time: '',
+    sesi3End: '',
+    venueName: '',
+    venueAddress: '',
+    city: '',
+    mapsUrl: '',
+    loveStory: [],
+    bankAccounts: [],
+    heroQuote: ''
   },
   guests: [],
   rsvps: []
@@ -88,12 +77,13 @@ function listGuests() {
   return readDb().guests;
 }
 
-function addGuest(name) {
+function addGuest(name, session = 1) {
   const db = readDb();
   const guest = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name,
     slug: slugify(name),
+    session: parseInt(session),
     createdAt: new Date().toISOString()
   };
   db.guests.push(guest);
@@ -101,12 +91,13 @@ function addGuest(name) {
   return guest;
 }
 
-function addGuestsBulk(names) {
+function addGuestsBulk(names, session) {
   const db = readDb();
   const created = names.map((name) => ({
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     name,
     slug: slugify(name),
+    session: parseInt(session) || 1,
     createdAt: new Date().toISOString()
   }));
   db.guests.push(...created);
@@ -131,13 +122,15 @@ function listRsvps() {
   return readDb().rsvps.slice().reverse();
 }
 
-function addRsvp({ guestName, attendance, message }) {
+function addRsvp({ guestName, attendance, message, pax, session }) {
   const db = readDb();
   const rsvp = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     guestName,
-    attendance, // 'hadir' | 'tidak_hadir' | 'ragu'
+    attendance,
     message,
+    pax,
+    session,
     createdAt: new Date().toISOString()
   };
   db.rsvps.push(rsvp);
@@ -147,12 +140,22 @@ function addRsvp({ guestName, attendance, message }) {
 
 function rsvpSummary() {
   const rsvps = readDb().rsvps;
-  return {
+  const summary = {
     total: rsvps.length,
-    hadir: rsvps.filter((r) => r.attendance === 'hadir').length,
-    tidak_hadir: rsvps.filter((r) => r.attendance === 'tidak_hadir').length,
-    ragu: rsvps.filter((r) => r.attendance === 'ragu').length
+    hadir: 0,
+    tidak_hadir: 0,
+    ragu: 0,
+    sesi1: { pax: 0 },
+    sesi2: { pax: 0 },
+    sesi3: { pax: 0 }
   };
+  rsvps.forEach((r) => {
+    summary[r.attendance]++;
+    if (r.attendance === 'hadir' && r.session) {
+      summary[`sesi${r.session}`].pax += parseInt(r.pax) || 0;
+    }
+  });
+  return summary;
 }
 
 module.exports = {

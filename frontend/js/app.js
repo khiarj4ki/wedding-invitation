@@ -1,44 +1,44 @@
-const API = ''; // sama origin dengan backend (server.js melayani frontend juga)
+const API = '';
 
-const hariNama = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-const bulanNama = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const hariNama = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const bulanNama = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
-function formatTanggalPanjang(dateStr){
-  if(!dateStr) return "Tanggal menyusul";
+function formatTanggalPanjang(dateStr) {
+  if (!dateStr) return "Tanggal menyusul";
   const d = new Date(dateStr + "T00:00:00");
   return `${hariNama[d.getDay()]}, ${d.getDate()} ${bulanNama[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-function formatTanggalPendek(dateStr){
+function formatTanggalPendek(dateStr) {
   const d = new Date(dateStr + "T00:00:00");
   return `${d.getDate()} ${bulanNama[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 let settingsCache = null;
 
-async function fetchSettings(){
+async function fetchSettings() {
   const res = await fetch(`${API}/api/settings`);
   return res.json();
 }
 
-async function fetchGuestBySlug(slug){
-  try{
+async function fetchGuestBySlug(slug) {
+  try {
     const res = await fetch(`${API}/api/guest/${encodeURIComponent(slug)}`);
-    if(!res.ok) return null;
+    if (!res.ok) return null;
     return res.json();
-  }catch(e){ return null; }
+  } catch (e) { return null; }
 }
 
-function renderCountdown(dateStr, timeStr){
+function renderCountdown(dateStr, timeStr) {
   const box = document.getElementById('countdown');
-  if(!box) return;
+  if (!box) return;
   const target = new Date(`${dateStr}T${timeStr || '00:00'}:00`);
   const now = new Date();
   const diff = Math.max(0, target - now);
-  const days = Math.floor(diff/(1000*60*60*24));
-  const hours = Math.floor((diff/(1000*60*60))%24);
-  const mins = Math.floor((diff/(1000*60))%60);
-  const secs = Math.floor((diff/1000)%60);
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / (1000 * 60)) % 60);
+  const secs = Math.floor((diff / 1000) % 60);
   box.innerHTML = `
     <div class="cd-box"><span class="cd-num">${days}</span><span class="cd-label">Hari</span></div>
     <div class="cd-box"><span class="cd-num">${hours}</span><span class="cd-label">Jam</span></div>
@@ -47,9 +47,9 @@ function renderCountdown(dateStr, timeStr){
   `;
 }
 
-function renderTimeline(items){
+function renderTimeline(items) {
   const box = document.getElementById('timeline');
-  if(!box) return;
+  if (!box) return;
   box.innerHTML = items.map(item => `
     <div class="tl-item">
       <p class="tl-title">${item.title}</p>
@@ -59,9 +59,9 @@ function renderTimeline(items){
   `).join('');
 }
 
-function renderBankAccounts(accounts){
+function renderBankAccounts(accounts) {
   const box = document.getElementById('bankGrid');
-  if(!box) return;
+  if (!box) return;
   box.innerHTML = accounts.map(acc => `
     <div class="bank-card">
       <p class="bank-name">${acc.bank}</p>
@@ -71,16 +71,16 @@ function renderBankAccounts(accounts){
   `).join('');
 }
 
-function attendanceLabel(val){
+function attendanceLabel(val) {
   return { hadir: 'Akan Hadir', tidak_hadir: 'Tidak Hadir', ragu: 'Masih Ragu' }[val] || val;
 }
 
-function timeAgo(iso){
+function timeAgo(iso) {
   const d = new Date(iso);
-  return d.toLocaleString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  return d.toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-async function renderWishes(){
+async function renderWishes() {
   const [wishes, summary] = await Promise.all([
     fetch(`${API}/api/rsvp`).then(r => r.json()),
     fetch(`${API}/api/rsvp/summary`).then(r => r.json())
@@ -104,60 +104,97 @@ async function renderWishes(){
   `).join('') || `<p class="section-lead">Jadilah yang pertama mengirim doa &amp; ucapan.</p>`;
 }
 
-function setupRsvpForm(defaultName){
+function setupRsvpForm(defaultName) {
   const form = document.getElementById('rsvpForm');
   const nameInput = document.getElementById('rsvpName');
-  if(defaultName) nameInput.value = defaultName;
+  const slugInput = document.getElementById('rsvpSlug');
+  const paxField = document.getElementById('paxField');
+
+  if (defaultName) nameInput.value = defaultName;
+
+  const attendanceRadios = form.querySelectorAll('input[name="attendance"]');
+  attendanceRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      if (e.target.value === 'tidak_hadir' || e.target.value === 'ragu') {
+        paxField.classList.add('hidden');
+      } else {
+        paxField.classList.remove('hidden');
+      }
+    });
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const note = document.getElementById('formNote');
+    const attendance = form.querySelector('input[name="attendance"]:checked').value;
+    const paxVal = form.querySelector('input[name="pax"]:checked')?.value || 1;
+
     const payload = {
+      slug: slugInput.value,
       guestName: nameInput.value.trim(),
-      attendance: form.querySelector('input[name="attendance"]:checked').value,
+      attendance: attendance,
+      pax: parseInt(paxVal),
       message: document.getElementById('rsvpMessage').value.trim()
     };
-    if(!payload.guestName || !payload.message){
-      note.textContent = 'Mohon lengkapi nama dan ucapan.';
-      return;
-    }
-    try{
+
+    try {
       const res = await fetch(`${API}/api/rsvp`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if(!res.ok) throw new Error();
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error);
+      }
+
       document.getElementById('rsvpMessage').value = '';
-      note.textContent = 'Terima kasih, doa dan ucapanmu sudah terkirim.';
+      note.style.color = "var(--gold)";
+      note.textContent = 'Terima kasih, konfirmasi kehadiran sudah tersimpan.';
       renderWishes();
-    }catch(err){
-      note.textContent = 'Gagal mengirim, silakan coba lagi.';
+    } catch (err) {
+      note.style.color = "#d98a8a";
+      note.textContent = err.message || 'Gagal mengirim RSVP, silakan coba lagi.';
     }
   });
 }
 
-async function init(){
+async function init() {
   const settings = await fetchSettings();
   settingsCache = settings;
 
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('tamu');
   let guestName = 'Bapak/Ibu/Saudara/i';
-  if(slug){
+  let guestSession = 1;
+
+  if (slug) {
     const guest = await fetchGuestBySlug(slug);
-    if(guest) guestName = guest.name;
+    if (guest) {
+      guestName = guest.name;
+      guestSession = guest.session || 1;
+      document.getElementById('rsvpSlug').value = slug;
+    }
   }
 
   // Cover
   document.getElementById('coverNames').innerHTML = `${settings.brideName.split(' ')[0]} &amp; ${settings.groomName.split(' ')[0]}`;
   document.getElementById('coverGuestName').textContent = guestName;
 
-  // Hero
+  // Hero & Session Badge
   document.getElementById('heroNames').innerHTML = `${settings.brideName.split(' ')[0]} <span>&amp;</span> ${settings.groomName.split(' ')[0]}`;
   document.getElementById('heroQuote').textContent = settings.heroQuote || '';
-  renderCountdown(settings.weddingDate, settings.akadTime);
-  setInterval(() => renderCountdown(settings.weddingDate, settings.akadTime), 1000);
+
+  const heroBadge = document.getElementById('heroBadge');
+  if (heroBadge) {
+    heroBadge.textContent = `RESEPSI - SESI ${guestSession}`;
+    heroBadge.classList.remove('hidden');
+  }
+
+  // Set Countdown untuk Sesi 1
+  renderCountdown(settings.weddingDate, settings.sesi1Time);
+  setInterval(() => renderCountdown(settings.weddingDate, settings.sesi1Time), 1000);
 
   // Mempelai
   document.getElementById('brideFullName').textContent = settings.brideFullName;
@@ -170,13 +207,32 @@ async function init(){
   // Cerita
   renderTimeline(settings.loveStory || []);
 
-  // Acara
-  document.getElementById('akadTime').textContent = `${settings.akadTime} - ${settings.akadEnd} WIB`;
-  document.getElementById('akadDate').textContent = formatTanggalPanjang(settings.weddingDate);
-  document.getElementById('akadVenue').textContent = settings.venueName;
-  document.getElementById('resepsiTime').textContent = `${settings.resepsiTime} - ${settings.resepsiEnd} WIB`;
-  document.getElementById('resepsiDate').textContent = formatTanggalPanjang(settings.weddingDate);
-  document.getElementById('resepsiVenue').textContent = settings.venueName;
+  // Acara (Render sesuai sesi tamu)
+  const eventGrid = document.getElementById('eventGrid');
+  let sessionTime = '';
+  let sessionEnd = '';
+  let eventName = 'Resepsi Pernikahan';
+
+  if (guestSession === 1) {
+    eventName = 'Akad & Resepsi';
+    sessionTime = settings.sesi1Time;
+    sessionEnd = settings.sesi1End;
+  } else if (guestSession === 2) {
+    sessionTime = settings.sesi2Time;
+    sessionEnd = settings.sesi2End;
+  } else if (guestSession === 3) {
+    sessionTime = settings.sesi3Time;
+    sessionEnd = settings.sesi3End;
+  }
+
+  eventGrid.innerHTML = `
+    <div class="event-card" style="grid-column: 1 / -1; text-align: center;">
+      <p class="event-name">${eventName}</p>
+      <p class="event-time">${sessionTime} - ${sessionEnd} WIB</p>
+      <p class="event-date">${formatTanggalPanjang(settings.weddingDate)}</p>
+      <p class="event-venue">${settings.venueName}</p>
+    </div>
+  `;
 
   // Lokasi
   document.getElementById('venueAddress').textContent = `${settings.venueAddress}, ${settings.city}`;
@@ -196,7 +252,7 @@ async function init(){
   document.getElementById('openBtn').addEventListener('click', () => {
     document.getElementById('cover').classList.add('hidden');
     document.getElementById('site').classList.remove('hidden');
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   });
 }
 
