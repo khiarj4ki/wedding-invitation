@@ -1,0 +1,203 @@
+const API = ''; // sama origin dengan backend (server.js melayani frontend juga)
+
+const hariNama = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const bulanNama = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+function formatTanggalPanjang(dateStr){
+  if(!dateStr) return "Tanggal menyusul";
+  const d = new Date(dateStr + "T00:00:00");
+  return `${hariNama[d.getDay()]}, ${d.getDate()} ${bulanNama[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatTanggalPendek(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  return `${d.getDate()} ${bulanNama[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+let settingsCache = null;
+
+async function fetchSettings(){
+  const res = await fetch(`${API}/api/settings`);
+  return res.json();
+}
+
+async function fetchGuestBySlug(slug){
+  try{
+    const res = await fetch(`${API}/api/guest/${encodeURIComponent(slug)}`);
+    if(!res.ok) return null;
+    return res.json();
+  }catch(e){ return null; }
+}
+
+function renderCountdown(dateStr, timeStr){
+  const box = document.getElementById('countdown');
+  if(!box) return;
+  const target = new Date(`${dateStr}T${timeStr || '00:00'}:00`);
+  const now = new Date();
+  const diff = Math.max(0, target - now);
+  const days = Math.floor(diff/(1000*60*60*24));
+  const hours = Math.floor((diff/(1000*60*60))%24);
+  const mins = Math.floor((diff/(1000*60))%60);
+  const secs = Math.floor((diff/1000)%60);
+  box.innerHTML = `
+    <div class="cd-box"><span class="cd-num">${days}</span><span class="cd-label">Hari</span></div>
+    <div class="cd-box"><span class="cd-num">${hours}</span><span class="cd-label">Jam</span></div>
+    <div class="cd-box"><span class="cd-num">${mins}</span><span class="cd-label">Menit</span></div>
+    <div class="cd-box"><span class="cd-num">${secs}</span><span class="cd-label">Detik</span></div>
+  `;
+}
+
+function renderTimeline(items){
+  const box = document.getElementById('timeline');
+  if(!box) return;
+  box.innerHTML = items.map(item => `
+    <div class="tl-item">
+      <p class="tl-title">${item.title}</p>
+      <p class="tl-date">${formatTanggalPendek(item.date)}</p>
+      <p class="tl-text">${item.text}</p>
+    </div>
+  `).join('');
+}
+
+function renderBankAccounts(accounts){
+  const box = document.getElementById('bankGrid');
+  if(!box) return;
+  box.innerHTML = accounts.map(acc => `
+    <div class="bank-card">
+      <p class="bank-name">${acc.bank}</p>
+      <p class="bank-number">${acc.number}</p>
+      <p class="bank-holder">a.n. ${acc.name}</p>
+    </div>
+  `).join('');
+}
+
+function attendanceLabel(val){
+  return { hadir: 'Akan Hadir', tidak_hadir: 'Tidak Hadir', ragu: 'Masih Ragu' }[val] || val;
+}
+
+function timeAgo(iso){
+  const d = new Date(iso);
+  return d.toLocaleString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+async function renderWishes(){
+  const [wishes, summary] = await Promise.all([
+    fetch(`${API}/api/rsvp`).then(r => r.json()),
+    fetch(`${API}/api/rsvp/summary`).then(r => r.json())
+  ]);
+
+  document.getElementById('wishesSummary').innerHTML = `
+    <div class="stat"><b>${summary.hadir}</b><span>Akan Hadir</span></div>
+    <div class="stat"><b>${summary.ragu}</b><span>Masih Ragu</span></div>
+    <div class="stat"><b>${summary.tidak_hadir}</b><span>Tidak Hadir</span></div>
+  `;
+
+  document.getElementById('wishesList').innerHTML = wishes.map(w => `
+    <div class="wish-item">
+      <div class="wish-head">
+        <span class="wish-name">${w.guestName}</span>
+        <span class="wish-tag">${attendanceLabel(w.attendance)}</span>
+      </div>
+      <p class="wish-text">${w.message}</p>
+      <p class="wish-date">${timeAgo(w.createdAt)}</p>
+    </div>
+  `).join('') || `<p class="section-lead">Jadilah yang pertama mengirim doa &amp; ucapan.</p>`;
+}
+
+function setupRsvpForm(defaultName){
+  const form = document.getElementById('rsvpForm');
+  const nameInput = document.getElementById('rsvpName');
+  if(defaultName) nameInput.value = defaultName;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const note = document.getElementById('formNote');
+    const payload = {
+      guestName: nameInput.value.trim(),
+      attendance: form.querySelector('input[name="attendance"]:checked').value,
+      message: document.getElementById('rsvpMessage').value.trim()
+    };
+    if(!payload.guestName || !payload.message){
+      note.textContent = 'Mohon lengkapi nama dan ucapan.';
+      return;
+    }
+    try{
+      const res = await fetch(`${API}/api/rsvp`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error();
+      document.getElementById('rsvpMessage').value = '';
+      note.textContent = 'Terima kasih, doa dan ucapanmu sudah terkirim.';
+      renderWishes();
+    }catch(err){
+      note.textContent = 'Gagal mengirim, silakan coba lagi.';
+    }
+  });
+}
+
+async function init(){
+  const settings = await fetchSettings();
+  settingsCache = settings;
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('tamu');
+  let guestName = 'Bapak/Ibu/Saudara/i';
+  if(slug){
+    const guest = await fetchGuestBySlug(slug);
+    if(guest) guestName = guest.name;
+  }
+
+  // Cover
+  document.getElementById('coverNames').innerHTML = `${settings.brideName.split(' ')[0]} &amp; ${settings.groomName.split(' ')[0]}`;
+  document.getElementById('coverGuestName').textContent = guestName;
+
+  // Hero
+  document.getElementById('heroNames').innerHTML = `${settings.brideName.split(' ')[0]} <span>&amp;</span> ${settings.groomName.split(' ')[0]}`;
+  document.getElementById('heroQuote').textContent = settings.heroQuote || '';
+  renderCountdown(settings.weddingDate, settings.akadTime);
+  setInterval(() => renderCountdown(settings.weddingDate, settings.akadTime), 1000);
+
+  // Mempelai
+  document.getElementById('brideFullName').textContent = settings.brideFullName;
+  document.getElementById('brideParents').innerHTML = `${settings.brideFather} &amp; ${settings.brideMother}`;
+  document.getElementById('brideAvatar').textContent = settings.brideName.charAt(0);
+  document.getElementById('groomFullName').textContent = settings.groomFullName;
+  document.getElementById('groomParents').innerHTML = `${settings.groomFather} &amp; ${settings.groomMother}`;
+  document.getElementById('groomAvatar').textContent = settings.groomName.charAt(0);
+
+  // Cerita
+  renderTimeline(settings.loveStory || []);
+
+  // Acara
+  document.getElementById('akadTime').textContent = `${settings.akadTime} - ${settings.akadEnd} WIB`;
+  document.getElementById('akadDate').textContent = formatTanggalPanjang(settings.weddingDate);
+  document.getElementById('akadVenue').textContent = settings.venueName;
+  document.getElementById('resepsiTime').textContent = `${settings.resepsiTime} - ${settings.resepsiEnd} WIB`;
+  document.getElementById('resepsiDate').textContent = formatTanggalPanjang(settings.weddingDate);
+  document.getElementById('resepsiVenue').textContent = settings.venueName;
+
+  // Lokasi
+  document.getElementById('venueAddress').textContent = `${settings.venueAddress}, ${settings.city}`;
+  document.getElementById('mapsLink').href = settings.mapsUrl;
+
+  // Kado
+  renderBankAccounts(settings.bankAccounts || []);
+
+  // Footer
+  document.getElementById('footerNames').innerHTML = `${settings.brideName.split(' ')[0]} &amp; ${settings.groomName.split(' ')[0]}`;
+
+  // RSVP
+  setupRsvpForm(guestName === 'Bapak/Ibu/Saudara/i' ? '' : guestName);
+  renderWishes();
+
+  // Buka undangan
+  document.getElementById('openBtn').addEventListener('click', () => {
+    document.getElementById('cover').classList.add('hidden');
+    document.getElementById('site').classList.remove('hidden');
+    window.scrollTo(0,0);
+  });
+}
+
+init();

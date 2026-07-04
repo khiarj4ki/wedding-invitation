@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Undangan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="admin-header">
+    <h1>Panel Admin Undangan</h1>
+    <a href="/" class="view-link" target="_blank">Lihat Halaman Tamu ↗</a>
+  </header>
+
+  <section class="card">
+    <h2>1. Detail Acara</h2>
+    <p class="hint">Isi sekali di sini — semua link tamu otomatis memakai data ini.</p>
+
+    <div class="grid2">
+      <div class="field"><label>Nama Mempelai Wanita</label><input id="brideName"></div>
+      <div class="field"><label>Nama Mempelai Pria</label><input id="groomName"></div>
+      <div class="field"><label>Gelar Lengkap Wanita</label><input id="brideFullName"></div>
+      <div class="field"><label>Gelar Lengkap Pria</label><input id="groomFullName"></div>
+      <div class="field"><label>Orang Tua Wanita</label><input id="brideFather" placeholder="Ayah"></div>
+      <div class="field"><label>&nbsp;</label><input id="brideMother" placeholder="Ibu"></div>
+      <div class="field"><label>Orang Tua Pria</label><input id="groomFather" placeholder="Ayah"></div>
+      <div class="field"><label>&nbsp;</label><input id="groomMother" placeholder="Ibu"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="field"><label>Tanggal Pernikahan</label><input type="date" id="weddingDate"></div>
+      <div class="field"></div>
+      <div class="field"><label>Jam Mulai Akad</label><input type="time" id="akadTime"></div>
+      <div class="field"><label>Jam Selesai Akad</label><input type="time" id="akadEnd"></div>
+      <div class="field"><label>Jam Mulai Resepsi</label><input type="time" id="resepsiTime"></div>
+      <div class="field"><label>Jam Selesai Resepsi</label><input type="time" id="resepsiEnd"></div>
+    </div>
+
+    <div class="field"><label>Nama Gedung / Lokasi</label><input id="venueName"></div>
+    <div class="grid2">
+      <div class="field"><label>Alamat</label><input id="venueAddress"></div>
+      <div class="field"><label>Kota</label><input id="city"></div>
+    </div>
+    <div class="field"><label>Link Google Maps</label><input id="mapsUrl"></div>
+    <div class="field"><label>Kutipan / Doa Pembuka</label><textarea id="heroQuote" rows="2"></textarea></div>
+
+    <button class="btn-solid" onclick="saveSettings()">Simpan Detail Acara</button>
+    <p class="save-note" id="saveNote"></p>
+  </section>
+
+  <section class="card">
+    <h2>2. Buat Link untuk Tamu</h2>
+    <p class="hint">Tempel daftar nama tamu (satu nama per baris), lalu buat link sekaligus.</p>
+    <div class="field">
+      <textarea id="guestNames" rows="4" placeholder="Bapak Hendra Wijaya&#10;Ibu Sari Kusuma&#10;Keluarga Besar Santoso"></textarea>
+    </div>
+    <button class="btn-solid" onclick="createGuests()">Buat Link Sekaligus</button>
+
+    <div class="guest-table" id="guestTable"></div>
+  </section>
+
+  <section class="card">
+    <h2>3. Doa &amp; Ucapan Masuk</h2>
+    <div class="wish-admin-list" id="wishAdminList"></div>
+  </section>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
