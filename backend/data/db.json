@@ -1,0 +1,46 @@
+{
+  "settings": {
+    "groomName": "Zaki",
+    "groomFullName": "Khiar Zaki Maulana",
+    "groomFather": "Susanto",
+    "groomMother": "Nurhidayana",
+    "brideName": "Chalz",
+    "brideFullName": "Chaliza",
+    "brideFather": "Hardi",
+    "brideMother": "Yuli Sartika",
+    "weddingDate": "2028-08-28",
+    "sesi1Time": "07:00",
+    "sesi1End": "10:00",
+    "sesi2Time": "11:00",
+    "sesi2End": "14:00",
+    "sesi3Time": "18:30",
+    "sesi3End": "21:00",
+    "venueName": "Gedung ABC",
+    "venueAddress": "Jl. Boulevard",
+    "city": "Tangerang",
+    "mapsUrl": "",
+    "loveStory": [],
+    "bankAccounts": [],
+    "heroQuote": ""
+  },
+  "guests": [
+    {
+      "id": "mr70lgurblzv",
+      "name": "Keluarga Besar 1",
+      "slug": "keluarga-besar-1-d3s2",
+      "session": 1,
+      "createdAt": "2026-07-04T23:49:58.035Z"
+    }
+  ],
+  "rsvps": [
+    {
+      "id": "mr70mvb08o00",
+      "guestName": "Keluarga Besar 1",
+      "attendance": "hadir",
+      "message": "samawa",
+      "pax": 2,
+      "session": 1,
+      "createdAt": "2026-07-04T23:51:03.420Z"
+    }
+  ]
+}

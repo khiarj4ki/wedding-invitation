@@ -50,25 +50,27 @@ function renderCountdown(dateStr, timeStr) {
 function renderTimeline(items) {
   const box = document.getElementById('timeline');
   if (!box) return;
-  box.innerHTML = items.map(item => `
-    <div class="tl-item">
+  box.innerHTML = items.map((item, i) => `
+    <div class="tl-item scroll-anim delay-${(i % 3) + 1}">
       <p class="tl-title">${item.title}</p>
       <p class="tl-date">${formatTanggalPendek(item.date)}</p>
       <p class="tl-text">${item.text}</p>
     </div>
   `).join('');
+  initScrollAnimations(); // Re-init observer untuk elemen baru
 }
 
 function renderBankAccounts(accounts) {
   const box = document.getElementById('bankGrid');
   if (!box) return;
-  box.innerHTML = accounts.map(acc => `
-    <div class="bank-card">
+  box.innerHTML = accounts.map((acc, i) => `
+    <div class="bank-card scroll-anim delay-${(i % 3) + 1}">
       <p class="bank-name">${acc.bank}</p>
       <p class="bank-number">${acc.number}</p>
       <p class="bank-holder">a.n. ${acc.name}</p>
     </div>
   `).join('');
+  initScrollAnimations();
 }
 
 function attendanceLabel(val) {
@@ -101,7 +103,7 @@ async function renderWishes() {
       <p class="wish-text">${w.message}</p>
       <p class="wish-date">${timeAgo(w.createdAt)}</p>
     </div>
-  `).join('') || `<p class="section-lead">Jadilah yang pertama mengirim doa &amp; ucapan.</p>`;
+  `).join('') || `<p class="section-lead">Jadilah yang pertama mengirim doa & ucapan.</p>`;
 }
 
 function setupRsvpForm(defaultName) {
@@ -160,6 +162,25 @@ function setupRsvpForm(defaultName) {
   });
 }
 
+// =========================================
+// INTERSECTION OBSERVER UTK ANIMASI SCROLL
+// =========================================
+function initScrollAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        // observer.unobserve(entry.target); // Buka komen ini jika ingin animasi hanya jalan 1x (tidak berulang saat scroll atas/bawah)
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.scroll-anim').forEach(el => observer.observe(el));
+}
+
+// =========================================
+// INISIALISASI HALAMAN
+// =========================================
 async function init() {
   const settings = await fetchSettings();
   settingsCache = settings;
@@ -179,11 +200,11 @@ async function init() {
   }
 
   // Cover
-  document.getElementById('coverNames').innerHTML = `${settings.brideName.split(' ')[0]} &amp; ${settings.groomName.split(' ')[0]}`;
+  document.getElementById('coverNames').innerHTML = `${settings.brideName.split(' ')[0]} & ${settings.groomName.split(' ')[0]}`;
   document.getElementById('coverGuestName').textContent = guestName;
 
   // Hero & Session Badge
-  document.getElementById('heroNames').innerHTML = `${settings.brideName.split(' ')[0]} <span>&amp;</span> ${settings.groomName.split(' ')[0]}`;
+  document.getElementById('heroNames').innerHTML = `${settings.brideName.split(' ')[0]} <span>&</span> ${settings.groomName.split(' ')[0]}`;
   document.getElementById('heroQuote').textContent = settings.heroQuote || '';
 
   const heroBadge = document.getElementById('heroBadge');
@@ -198,10 +219,10 @@ async function init() {
 
   // Mempelai
   document.getElementById('brideFullName').textContent = settings.brideFullName;
-  document.getElementById('brideParents').innerHTML = `${settings.brideFather} &amp; ${settings.brideMother}`;
+  document.getElementById('brideParents').innerHTML = `${settings.brideFather} & ${settings.brideMother}`;
   document.getElementById('brideAvatar').textContent = settings.brideName.charAt(0);
   document.getElementById('groomFullName').textContent = settings.groomFullName;
-  document.getElementById('groomParents').innerHTML = `${settings.groomFather} &amp; ${settings.groomMother}`;
+  document.getElementById('groomParents').innerHTML = `${settings.groomFather} & ${settings.groomMother}`;
   document.getElementById('groomAvatar').textContent = settings.groomName.charAt(0);
 
   // Cerita
@@ -226,7 +247,7 @@ async function init() {
   }
 
   eventGrid.innerHTML = `
-    <div class="event-card" style="grid-column: 1 / -1; text-align: center;">
+    <div class="event-card scroll-anim" style="grid-column: 1 / -1; text-align: center;">
       <p class="event-name">${eventName}</p>
       <p class="event-time">${sessionTime} - ${sessionEnd} WIB</p>
       <p class="event-date">${formatTanggalPanjang(settings.weddingDate)}</p>
@@ -242,18 +263,41 @@ async function init() {
   renderBankAccounts(settings.bankAccounts || []);
 
   // Footer
-  document.getElementById('footerNames').innerHTML = `${settings.brideName.split(' ')[0]} &amp; ${settings.groomName.split(' ')[0]}`;
+  document.getElementById('footerNames').innerHTML = `${settings.brideName.split(' ')[0]} & ${settings.groomName.split(' ')[0]}`;
 
   // RSVP
   setupRsvpForm(guestName === 'Bapak/Ibu/Saudara/i' ? '' : guestName);
   renderWishes();
 
-  // Buka undangan
+  // Inisialisasi Audio & Transisi Buka Undangan
+  const bgMusic = document.getElementById('bgMusic');
+  const musicBtn = document.getElementById('musicBtn');
+
   document.getElementById('openBtn').addEventListener('click', () => {
     document.getElementById('cover').classList.add('hidden');
     document.getElementById('site').classList.remove('hidden');
     window.scrollTo(0, 0);
+
+    // Play Musik
+    if (bgMusic) {
+      bgMusic.play().catch(e => console.log("User belum interaksi, audio diblokir."));
+      musicBtn.classList.remove('hidden'); // Munculkan tombol musik
+    }
   });
+
+  // Logika Tombol Play/Pause Musik
+  musicBtn.addEventListener('click', () => {
+    if (bgMusic.paused) {
+      bgMusic.play();
+      musicBtn.classList.remove('paused');
+    } else {
+      bgMusic.pause();
+      musicBtn.classList.add('paused');
+    }
+  });
+
+  // Jalankan Animasi Scroll
+  initScrollAnimations();
 }
 
 init();

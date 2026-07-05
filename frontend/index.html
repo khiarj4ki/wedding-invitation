@@ -7,29 +7,36 @@
   <title>Undangan Pernikahan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
+  <audio id="bgMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
+
+  <button class="music-btn hidden" id="musicBtn" aria-label="Toggle Music">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+    </svg>
+  </button>
+
   <section class="cover" id="cover">
-    <div class="cover-ornament top"></div>
     <div class="cover-content">
       <p class="eyebrow">Undangan Pernikahan</p>
-      <h1 class="cover-names" id="coverNames">— &amp; —</h1>
+      <h1 class="cover-names" id="coverNames">— & —</h1>
       <div class="cover-guest">
         <p class="label">Kepada Yth.</p>
         <p class="guest-name" id="coverGuestName">Bapak/Ibu/Saudara/i</p>
       </div>
       <button class="open-btn" id="openBtn">Buka Undangan</button>
     </div>
-    <div class="cover-ornament bottom"></div>
   </section>
 
   <div class="site hidden" id="site">
-
     <nav class="dot-nav" id="dotNav">
       <a href="#mempelai" data-label="Mempelai"></a>
       <a href="#cerita" data-label="Cerita"></a>
@@ -40,83 +47,86 @@
     </nav>
 
     <header class="hero">
-      <p class="eyebrow">Bismillahirrahmanirrahim</p>
-      <div id="heroBadge" class="session-badge hidden">Sesi 1</div>
-      <h1 class="hero-names" id="heroNames">Raka <span>&amp;</span> Cinta</h1>
-      <p class="hero-quote" id="heroQuote"></p>
-      <div class="countdown" id="countdown"></div>
+      <p class="eyebrow scroll-anim">Bismillahirrahmanirrahim</p>
+      <div id="heroBadge" class="session-badge hidden scroll-anim delay-1">Sesi 1</div>
+      <h1 class="hero-names scroll-anim delay-2" id="heroNames">Raka <span>&</span> Cinta</h1>
+      <p class="hero-quote scroll-anim delay-3" id="heroQuote"></p>
+      <div class="countdown scroll-anim delay-4" id="countdown"></div>
     </header>
 
     <section class="section" id="mempelai">
-      <p class="section-eyebrow">Mempelai</p>
-      <h2 class="section-title">Assalamu'alaikum Warahmatullahi Wabarakatuh</h2>
-      <p class="section-lead">Dengan rahmat Allah Yang Maha Kuasa, kami bermaksud menyelenggarakan pernikahan dan
-        mengharap doa restu Bapak/Ibu/Saudara/i.</p>
+      <p class="section-eyebrow scroll-anim">Mempelai</p>
+      <h2 class="section-title scroll-anim delay-1">Assalamu'alaikum Warahmatullahi Wabarakatuh</h2>
+      <p class="section-lead scroll-anim delay-2">Dengan rahmat Allah Yang Maha Kuasa, kami bermaksud menyelenggarakan
+        pernikahan dan mengharap doa restu Bapak/Ibu/Saudara/i.</p>
 
       <div class="couple-grid">
-        <div class="couple-card">
+        <div class="couple-card scroll-anim">
           <div class="avatar" id="brideAvatar">C</div>
           <h3 id="brideFullName">Cinta Amelia</h3>
-          <p class="couple-parents">Putri dari<br><span id="brideParents">Bapak Hendra &amp; Ibu Kartika</span></p>
+          <p class="couple-parents">Putri dari<br><span id="brideParents">Bapak Hendra & Ibu Kartika</span></p>
         </div>
-        <div class="couple-divider">&amp;</div>
-        <div class="couple-card">
+        <div class="couple-divider scroll-anim delay-1">&</div>
+        <div class="couple-card scroll-anim delay-2">
           <div class="avatar" id="groomAvatar">R</div>
           <h3 id="groomFullName">Raka Pratama</h3>
-          <p class="couple-parents">Putra dari<br><span id="groomParents">Bapak Sutrisno &amp; Ibu Wulandari</span></p>
+          <p class="couple-parents">Putra dari<br><span id="groomParents">Bapak Sutrisno & Ibu Wulandari</span></p>
         </div>
       </div>
     </section>
 
     <section class="section alt" id="cerita">
-      <p class="section-eyebrow">Perjalanan</p>
-      <h2 class="section-title">Cerita Cinta</h2>
-      <p class="section-lead">Sepenggal kisah yang membawa kami sampai ke hari ini.</p>
+      <p class="section-eyebrow scroll-anim">Perjalanan</p>
+      <h2 class="section-title scroll-anim delay-1">Cerita Cinta</h2>
+      <p class="section-lead scroll-anim delay-2">Sepenggal kisah yang membawa kami sampai ke hari ini.</p>
       <div class="timeline" id="timeline"></div>
     </section>
 
     <section class="section" id="acara">
-      <p class="section-eyebrow">Save the Date</p>
-      <h2 class="section-title">Undangan &amp; Acara</h2>
-      <p class="section-lead">Kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu.</p>
-      <div class="event-grid" id="eventGrid"></div>
+      <p class="section-eyebrow scroll-anim">Save the Date</p>
+      <h2 class="section-title scroll-anim delay-1">Undangan & Acara</h2>
+      <p class="section-lead scroll-anim delay-2">Kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa
+        restu.</p>
+      <div class="event-grid scroll-anim delay-3" id="eventGrid"></div>
     </section>
 
     <section class="section alt" id="lokasi">
-      <p class="section-eyebrow">Peta</p>
-      <h2 class="section-title">Lokasi Acara</h2>
-      <p class="section-lead" id="venueAddress">Jl. Melati Raya No. 21, Sleman, Yogyakarta</p>
-      <a class="btn-outline" id="mapsLink" href="#" target="_blank" rel="noopener">Buka di Google Maps</a>
+      <p class="section-eyebrow scroll-anim">Peta</p>
+      <h2 class="section-title scroll-anim delay-1">Lokasi Acara</h2>
+      <p class="section-lead scroll-anim delay-2" id="venueAddress">Jl. Melati Raya No. 21, Sleman, Yogyakarta</p>
+      <a class="btn-outline scroll-anim delay-3" id="mapsLink" href="#" target="_blank" rel="noopener">Buka di Google
+        Maps</a>
     </section>
 
     <section class="section" id="galeri">
-      <p class="section-eyebrow">Kenangan</p>
-      <h2 class="section-title">Galeri Foto</h2>
-      <p class="section-lead">Beberapa momen kebersamaan yang ingin kami bagikan.</p>
+      <p class="section-eyebrow scroll-anim">Kenangan</p>
+      <h2 class="section-title scroll-anim delay-1">Galeri Foto</h2>
+      <p class="section-lead scroll-anim delay-2">Beberapa momen kebersamaan yang ingin kami bagikan.</p>
       <div class="gallery-grid">
-        <div class="gallery-item"></div>
-        <div class="gallery-item"></div>
-        <div class="gallery-item"></div>
-        <div class="gallery-item"></div>
-        <div class="gallery-item"></div>
-        <div class="gallery-item"></div>
+        <div class="gallery-item scroll-anim delay-1"></div>
+        <div class="gallery-item scroll-anim delay-2"></div>
+        <div class="gallery-item scroll-anim delay-3"></div>
+        <div class="gallery-item scroll-anim delay-1"></div>
+        <div class="gallery-item scroll-anim delay-2"></div>
+        <div class="gallery-item scroll-anim delay-3"></div>
       </div>
     </section>
 
     <section class="section alt" id="kado">
-      <p class="section-eyebrow">Tanda Kasih</p>
-      <h2 class="section-title">Kirim Hadiah</h2>
-      <p class="section-lead">Doa restu Bapak/Ibu/Saudara/i adalah hadiah terindah. Jika ingin memberi tanda kasih,
-        dapat melalui:</p>
+      <p class="section-eyebrow scroll-anim">Tanda Kasih</p>
+      <h2 class="section-title scroll-anim delay-1">Kirim Hadiah</h2>
+      <p class="section-lead scroll-anim delay-2">Doa restu Bapak/Ibu/Saudara/i adalah hadiah terindah. Jika ingin
+        memberi tanda kasih, dapat melalui:</p>
       <div class="bank-grid" id="bankGrid"></div>
     </section>
 
     <section class="section" id="doa">
-      <p class="section-eyebrow">RSVP</p>
-      <h2 class="section-title">Doa &amp; Ucapan</h2>
-      <p class="section-lead">Kabarkan kehadiran Bapak/Ibu/Saudara/i dan tinggalkan doa untuk kami.</p>
+      <p class="section-eyebrow scroll-anim">RSVP</p>
+      <h2 class="section-title scroll-anim delay-1">Doa & Ucapan</h2>
+      <p class="section-lead scroll-anim delay-2">Kabarkan kehadiran Bapak/Ibu/Saudara/i dan tinggalkan doa untuk kami.
+      </p>
 
-      <form class="rsvp-form" id="rsvpForm">
+      <form class="rsvp-form scroll-anim delay-3" id="rsvpForm">
         <input type="hidden" id="rsvpSlug" value="">
         <div class="field">
           <label for="rsvpName">Nama</label>
@@ -139,19 +149,19 @@
           <p class="pax-note">Kapasitas terbatas untuk kenyamanan bersama.</p>
         </div>
         <div class="field">
-          <label for="rsvpMessage">Ucapan &amp; Doa</label>
+          <label for="rsvpMessage">Ucapan & Doa</label>
           <textarea id="rsvpMessage" rows="3" required></textarea>
         </div>
-        <button type="submit" class="btn-solid">Kirim Doa &amp; Ucapan</button>
+        <button type="submit" class="btn-solid">Kirim Doa & Ucapan</button>
         <p class="form-note" id="formNote"></p>
       </form>
 
-      <div class="wishes-summary" id="wishesSummary"></div>
-      <div class="wishes-list" id="wishesList"></div>
+      <div class="wishes-summary scroll-anim" id="wishesSummary"></div>
+      <div class="wishes-list scroll-anim" id="wishesList"></div>
     </section>
 
-    <footer class="footer">
-      <p id="footerNames">Cinta &amp; Raka</p>
+    <footer class="footer scroll-anim">
+      <p id="footerNames">Cinta & Raka</p>
       <p class="footer-sub">Terima kasih atas doa dan restu Bapak/Ibu/Saudara/i</p>
     </footer>
   </div>
